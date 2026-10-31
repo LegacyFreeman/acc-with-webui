@@ -8,16 +8,71 @@ PROP_FILE="$MODDIR/module.prop"
 TEST_FILES="/data/local/tmp/acc_test_all.log /data/local/tmp/acc_test_all.hb"
 
 # Detect system language
-lang=$(cmd activity get-config 2>/dev/null | grep -m1 '^config:' | sed 's/^config:[[:space:]]*//' | cut -d',' -f1 | cut -d'-' -f1 | tr '[:upper:]' '[:lower:]' | cut -c1-2)
+lang=""
 
-[ -z "$lang" ] && lang=$(getprop persist.sys.locale | cut -c1-2)
-[ -z "$lang" ] && lang=$(getprop ro.product.locale | cut -c1-2)
+# Helper function to normalize and check if a locale folder exists
+resolve_locale() {
+    local candidate="$1"
+    [ -z "$candidate" ] && return 1
 
-# Fallback to default if translation doesn't exist
-if [ -n "$lang" ] && [ -f "$MODDIR/translations/$lang/strings.sh" ]; then
-    . "$MODDIR/translations/$lang/strings.sh"
+    local clean_locale
+    clean_locale=$(echo "$candidate" | tr '_' '-')
+
+    # 1. Check for exact match first (e.g. de-DE, pt-PT)
+    if [ -d "$MODDIR/install/translations/$clean_locale" ]; then
+        lang="$clean_locale"
+        return 0
+
+    # 2. Handle Chinese variants explicitly
+    elif [ "$clean_locale" = "zh-CN" ] || [ "$clean_locale" = "zh-Hans-CN" ] || [ "$clean_locale" = "zh-Hans" ]; then
+        lang="zh-rCN"
+        return 0
+    elif [ "$clean_locale" = "zh-TW" ] || [ "$clean_locale" = "zh-Hant-TW" ] || [ "$clean_locale" = "zh-Hant" ]; then
+        lang="zh-rTW"
+        return 0
+
+    # 3. Fallback to 2-letter prefix for folders like ru, tr, fr, id
+    else
+        local short_lang
+        short_lang=$(echo "$clean_locale" | cut -d'-' -f1 | tr '[:upper:]' '[:lower:]')
+        if [ -d "$MODDIR/install/translations/$short_lang" ]; then
+            lang="$short_lang"
+            return 0
+        fi
+    fi
+    return 1
+}
+
+# Step 1: user's selected locale list (first entry = preferred)
+raw_lang=$(settings get system system_locales 2>/dev/null | cut -d',' -f1)
+resolve_locale "$raw_lang" || :
+
+# Step 2: persist.sys.locale
+if [ -z "$lang" ]; then
+    resolve_locale "$(getprop persist.sys.locale 2>/dev/null)" || :
+fi
+
+# Step 3: ro.product.locale
+if [ -z "$lang" ]; then
+    resolve_locale "$(getprop ro.product.locale 2>/dev/null)" || :
+fi
+
+# Step 4: cmd activity get-config (last resort; handles both "ru-rUA" and "mccXXX-mncXX-ru-rRU")
+if [ -z "$lang" ]; then
+    cfg=$(cmd activity get-config 2>/dev/null | grep -m1 '^config:' | sed 's/^config:[[:space:]]*//' | cut -d',' -f1)
+    l=$(echo "$cfg" | tr '-' '\n' | grep -m1 -E '^[a-z]{2,3}$' || :)
+    r=$(echo "$cfg" | tr '-' '\n' | grep -m1 -E '^r[A-Z]{2}$' | cut -c2- || :)
+    resolve_locale "${l:+$l${r:+-$r}}" || :
+fi
+
+# Step 5: English fallback
+lang=${lang:-en}
+
+# --- We specify the correct path via install/ ---
+if [ -n "$lang" ] && [ -f "$MODDIR/install/translations/$lang/strings.sh" ]; then
+    . "$MODDIR/install/translations/$lang/strings.sh"
 else
-    . "$MODDIR/strings.sh"
+    [ -f "$MODDIR/install/strings.sh" ] && . "$MODDIR/install/strings.sh"
 fi
 
 echo "========================================"
