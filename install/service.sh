@@ -102,9 +102,6 @@ else
 fi
 # --------------------------------
 
-echo "- Detected language: '${lang:-default (en)}'"
-echo ""
-
     PROP_FILE="/data/adb/modules/acc/module.prop"
 
     if pgrep -f accd >/dev/null 2>&1; then
