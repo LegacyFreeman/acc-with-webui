@@ -157,7 +157,7 @@ Copyright 2026, $(echo "$author" | cut -d',' -f2 | tr -d ' ')
 GPLv3+
 
 
-Installing in $installDir/$id/..."
+$TXT_INSTALLING_IN $installDir/$id/..."
 
 
 # backup
