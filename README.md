@@ -2,7 +2,7 @@
   <b>English</b> | 
   <a href="install/translations/fr/README.md">Français</a> | 
   <a href="install/translations/ru/README.md">Русский</a> | 
-  <a href="install/translations/tr/README.md">Türkçe</a> | 
+  <a href="install/translations/tr/README.md">Türkçe</a> 
 </p>
 <hr>
 
