@@ -76,8 +76,6 @@ else
 fi
 # --------------------------------
 
-echo "- Detected language: '${lang:-default (en)}'"
-echo ""
 echo "========================================"
 echo "       ACC Daemon Action Controller      "
 echo "========================================"
