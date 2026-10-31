@@ -33,6 +33,7 @@ export dataDir domain execDir id TMPDIR
 
 # We enable localization (since service.sh is launched from the module folder)
     MODDIR="/data/adb/modules/acc"
+# Detect system language
 lang=""
 
 # Helper function to normalize and check if a locale folder exists
@@ -44,7 +45,7 @@ resolve_locale() {
     clean_locale=$(echo "$candidate" | tr '_' '-')
 
     # 1. Check for exact match first (e.g. de-DE, pt-PT)
-    if [ -d "$MODDIR/install/translations/$clean_locale" ]; then
+    if [ -d "$MODDIR/translations/$clean_locale" ]; then
         lang="$clean_locale"
         return 0
 
@@ -60,7 +61,7 @@ resolve_locale() {
     else
         local short_lang
         short_lang=$(echo "$clean_locale" | cut -d'-' -f1 | tr '[:upper:]' '[:lower:]')
-        if [ -d "$MODDIR/install/translations/$short_lang" ]; then
+        if [ -d "$MODDIR/translations/$short_lang" ]; then
             lang="$short_lang"
             return 0
         fi
@@ -94,11 +95,15 @@ fi
 lang=${lang:-en}
 
 # --- We specify the correct path via install/ ---
-if [ -n "$lang" ] && [ -f "$MODDIR/install/translations/$lang/strings.sh" ]; then
-    . "$MODDIR/install/translations/$lang/strings.sh"
+if [ -n "$lang" ] && [ -f "$MODDIR/translations/$lang/strings.sh" ]; then
+    . "$MODDIR/translations/$lang/strings.sh"
 else
-    [ -f "$MODDIR/install/strings.sh" ] && . "$MODDIR/install/strings.sh"
+    [ -f "$MODDIR/strings.sh" ] && . "$MODDIR/strings.sh"
 fi
+# --------------------------------
+
+echo "- Detected language: '${lang:-default (en)}'"
+echo ""
 
     PROP_FILE="/data/adb/modules/acc/module.prop"
 
