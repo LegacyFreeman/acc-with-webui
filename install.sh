@@ -314,15 +314,7 @@ else
 fi
 # --------------------------------
 
-print_msg() {
-    if command -v ui_print >/dev/null 2>&1; then
-        ui_print "$1"
-    else
-        echo "$1"
-    fi
-}
-
-print_msg "- Detected language: '${lang:-default (en)}'"
+echo "- Detected language: '${lang:-default (en)}'"
 
 printf "\n\n"
 printf "$version ($versionCode) $TXT_INSTALLED_RUNNING\n\n" | tee $tmpd/.install-notes
