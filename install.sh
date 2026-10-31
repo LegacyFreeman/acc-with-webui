@@ -372,20 +372,6 @@ _echo() {
   echo "$@" | tee -a $tmpd/.install-notes
 }
 
-# --- Localization setup ---
-lang=$(cmd activity get-config 2>/dev/null | grep -m1 '^config:' | sed 's/^config:[[:space:]]*//' | cut -d',' -f1 | cut -d'-' -f1 | tr '[:upper:]' '[:lower:]' | cut -c1-2)
-[ -z "$lang" ] && lang=$(getprop persist.sys.locale | cut -c1-2)
-[ -z "$lang" ] && lang=$(getprop ro.product.locale | cut -c1-2)
-# --- We specify the correct path via install/ ---
-if [ -n "$lang" ] && [ -f "$srcDir/install/translations/$lang/strings.sh" ]; then
-    . "$srcDir/install/translations/$lang/strings.sh"
-else
-    [ -f "$srcDir/install/strings.sh" ] && . "$srcDir/install/strings.sh"
-fi
-# --------------------------------
-
-echo "- Detected language: '${lang:-default (en)}'"
-
 printf "\n\n"
 printf "$version ($versionCode) $TXT_INSTALLED_RUNNING\n\n" | tee $tmpd/.install-notes
 if [ -x /sbin/${id}d ] || grep -q '#exec_wrapper' /system/bin/${id}d 2>/dev/null; then
